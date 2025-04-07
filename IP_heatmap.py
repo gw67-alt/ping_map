@@ -27,38 +27,84 @@ class PingHeatmap:
         # Expanded known geolocation data (APPROXIMATE - real locations vary!)
         # Added more diversity + Australian entry
         self.geo_locations = {
-            # Americas
-            "google.com": [37.4220, -122.0841],      # Mountain View, CA (Approx)
-            "amazon.com": [39.9910, -105.0889],     # AWS US-West (Approx Oregon/Colorado) - Varies!
-            "microsoft.com": [47.6740, -122.1215],   # Redmond, WA (Approx)
-            "facebook.com": [37.4847, -122.1477],   # Menlo Park, CA (Approx)
-            "twitter.com": [37.7749, -122.4194],    # San Francisco, CA (Approx HQ)
-            "netflix.com": [37.2745, -121.9533],    # Los Gatos, CA (Approx HQ)
-            "cloudflare.com": [37.7749, -122.4194], # San Francisco, CA (Approx HQ)
-            "github.com": [37.7749, -122.4194],     # San Francisco, CA (Approx HQ)
-            "apple.com": [37.3318, -122.0312],      # Cupertino, CA (Approx)
-            "yahoo.com": [40.7580, -73.9855],       # New York (Approx - Verizon Media)
-            "linkedin.com": [37.4220, -122.0841],   # Mountain View, CA (Approx)
-            "mercadolibre.com.ar": [-34.6037, -58.3816], # Buenos Aires, AR (Approx)
-            "google.ca": [43.6532, -79.3832],        # Toronto, CA (Approx)
+        # --- Mapping generated for the 100-site list ---
+        # IMPORTANT: These are VERY approximate locations based on HQs, known data center regions,
+        # or major cities in the TLD country. Actual server locations depend heavily on CDNs
+        # and the user's location. This dictionary provides a *static, symbolic* mapping for the heatmap.
 
-            # Europe & Middle East
-            "bbc.co.uk": [51.5074, -0.1278],         # London, UK (Approx)
-            "yandex.ru": [55.7558, 37.6173],         # Moscow, RU (Approx)
-            "google.de": [50.1109, 8.6821],          # Frankfurt, DE (Approx Data Center Hub)
-            "google.fr": [48.8566, 2.3522],          # Paris, FR (Approx)
+        # == Major Global Services ==
+        "google.com": [37.4220, -122.0841],      # Mountain View, CA (Google HQ)
+        "cloudflare.com": [37.7749, -122.4194], # San Francisco, CA (Cloudflare HQ)
+        "facebook.com": [37.4847, -122.1477],   # Menlo Park, CA (Meta HQ)
+        "amazon.com": [39.0438, -77.4874],       # Ashburn, VA (Major AWS/Cloud Hub)
+        "microsoft.com": [47.6740, -122.1215],   # Redmond, WA (Microsoft HQ)
+        "apple.com": [37.3318, -122.0312],      # Cupertino, CA (Apple HQ)
+        "instagram.com": [37.4847, -122.1477],   # Menlo Park, CA (Meta)
+        "whatsapp.com": [37.4847, -122.1477],   # Menlo Park, CA (Meta)
+        "live.com": [39.0438, -77.4874],       # Ashburn, VA (Microsoft Cloud Hub)
+        "office.com": [39.0438, -77.4874],       # Ashburn, VA (Microsoft Cloud Hub)
+        "bing.com": [39.0438, -77.4874],       # Ashburn, VA (Microsoft Cloud Hub)
+        "icloud.com": [35.5789, -81.2009],       # Maiden, NC (Apple Data Center Region)
 
-            # Asia & Oceania
-            "baidu.com": [39.9042, 116.4074],        # Beijing, CN (Approx)
-            "alibaba.com": [30.2741, 120.1551],     # Hangzhou, CN (Approx)
-            "rakuten.co.jp": [35.6895, 139.6917],     # Tokyo, JP (Approx)
-            "wikipedia.org": [1.3521, 103.8198],       # Singapore (Approx Wikimedia Servers) - Varies!
-            "google.com.au": [-33.8688, 151.2093],    # Sydney, AU (Approx) - Added for context
-            "google.co.in": [19.0760, 72.8777],       # Mumbai, IN (Approx)
+        # == Google Regional TLDs ==
+        "google.com.au": [-33.8688, 151.2093],    # Sydney, AU
+        "google.co.uk": [51.5074, -0.1278],         # London, UK
+        "google.de": [50.1109, 8.6821],          # Frankfurt, DE (Major EU Hub)
+        "google.fr": [48.8566, 2.3522],          # Paris, FR
+        "google.ca": [43.6532, -79.3832],        # Toronto, CA
+        "google.co.jp": [35.6895, 139.6917],   # Tokyo, JP
+        "google.co.in": [19.0760, 72.8777],       # Mumbai, IN
+        "google.com.br": [-23.5505, -46.6333],    # São Paulo, BR
+        "google.co.za": [-26.2041, 28.0473],       # Johannesburg, ZA
 
-            # Default Fallback (SF)
-            "fallback_default": [37.7749, -122.4194]
-        }
+        # == Other Popular Global/Tech Sites ==
+        "wikipedia.org": [1.3521, 103.8198],      # Singapore (Wikimedia DC Region)
+        "x.com": [37.7749, -122.4194],            # San Francisco, CA (X/Twitter HQ)
+        "netflix.com": [37.2241, -121.9691],      # Los Gatos, CA (Netflix HQ)
+        "github.com": [37.7749, -122.4194],       # San Francisco, CA (GitHub HQ / Microsoft)
+        "yahoo.com": [40.7128, -74.0060],         # New York, NY (Approx Parent Co)
+        "linkedin.com": [37.3688, -122.0363],     # Sunnyvale, CA (LinkedIn HQ / Microsoft)
+        "reddit.com": [37.7749, -122.4194],       # San Francisco, CA (Reddit HQ)
+        "tiktok.com": [1.3521, 103.8198],         # Singapore (Major Hub)
+        "zoom.us": [37.3382, -121.8863],          # San Jose, CA (Zoom HQ)
+        "ebay.com": [37.3382, -121.8863],          # San Jose, CA (eBay HQ)
+        "wordpress.com": [37.7749, -122.4194],    # San Francisco, CA (Automattic HQ)
+
+        # == News Outlets ==
+        "bbc.co.uk": [51.5074, -0.1278],         # London, UK
+        "cnn.com": [33.7490, -84.3880],           # Atlanta, GA (CNN HQ)
+        "nytimes.com": [40.7128, -74.0060],         # New York, NY (NYT HQ)
+        "theguardian.com": [51.5074, -0.1278],      # London, UK
+
+        # == Regional Specific Sites ==
+        "mercadolibre.com.ar": [-34.6037, -58.3816], # Buenos Aires, AR
+        "yandex.ru": [55.7558, 37.6173],         # Moscow, RU
+        "baidu.com": [39.9042, 116.4074],        # Beijing, CN
+        "alibaba.com": [30.2741, 120.1551],     # Hangzhou, CN
+        "rakuten.co.jp": [35.6895, 139.6917],   # Tokyo, JP
+        "naver.com": [37.4204, 127.1269],       # Seongnam, KR (Near Seoul)
+        "qq.com": [22.5431, 114.0579],           # Shenzhen, CN (Tencent HQ)
+
+        # == Australian Focused Sites ==
+        "news.com.au": [-33.8688, 151.2093],    # Sydney, AU (News Corp Aus)
+        "abc.net.au": [-33.8688, 151.2093],     # Sydney, AU (ABC Main Office Area)
+        "smh.com.au": [-33.8688, 151.2093],     # Sydney, AU (Nine Entertainment)
+        "theage.com.au": [-37.8136, 144.9631],    # Melbourne, AU (Nine Entertainment)
+        "telstra.com.au": [-37.8136, 144.9631],    # Melbourne, AU (Telstra HQ)
+        "optus.com.au": [-33.7800, 151.1100],     # Sydney, AU (Macquarie Park Area - Optus HQ) - Adjusted slightly
+        "seek.com.au": [-37.8136, 144.9631],    # Melbourne, AU (Seek HQ Area)
+        "realestate.com.au": [-37.8136, 144.9631],# Melbourne, AU (REA Group HQ Area)
+        "gov.au": [-35.2809, 149.1300],       # Canberra, AU (Capital)
+        "csiro.au": [-35.2766, 149.1148],       # Canberra, AU (Acton Area - CSIRO HQ) - Adjusted slightly
+        "bunnings.com.au": [-37.8245, 145.0600], # Melbourne, AU (Hawthorn East Area - Wesfarmers/Bunnings HQ) - Adjusted slightly
+        "woolworths.com.au": [-33.7670, 150.9070], # Sydney, AU (Bella Vista Area - Woolworths HQ) - Adjusted slightly
+        "coles.com.au": [-37.8245, 145.0600],    # Melbourne, AU (Hawthorn East Area - Coles HQ) - Adjusted slightly
+        "commbank.com.au": [-33.8688, 151.2093],    # Sydney, AU (CBA HQ)
+        "nab.com.au": [-37.8183, 144.9548],       # Melbourne, AU (Docklands Area - NAB HQ) - Adjusted slightly
+
+        # == Default Fallback ==
+        "fallback_default": [37.7749, -122.4194] # San Francisco, CA
+    }
         print("Geolocation dictionary initialized.")
 
     def run_ping(self, website, count=4, timeout_sec=5):
@@ -441,10 +487,6 @@ if __name__ == "__main__":
         "coles.com.au", # Retailer
         "commbank.com.au", # Bank
         "nab.com.au", # Bank
-
-        # == Padding / Other ==
-        # (Ensure we reached 100) - Current count should be ~100
-        # Re-check count: 7+6+4+4+2+3+3+1+2+1+2+2 + 5+2+2+2+2+2+2+2+2 + 1+1+1+1+1+1+1+1+1 + 4 + 7 + 13 + 1 = ~100. Seems correct.
     ]
 
     # Run the analysis and generate the scatter plot
