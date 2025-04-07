@@ -26,10 +26,36 @@ class ConcurrentUserPopulationEstimator:
         os.makedirs(output_dir, exist_ok=True)
         
         # Default websites if none provided
-        self.target_websites = target_websites or [
-            "google.com", "amazon.com", "microsoft.com", 
-            "cloudflare.com", "netflix.com", "facebook.com",
-            "youtube.com", "instagram.com", "twitter.com"
+        self.target_websites = [
+            # Social Media & Communication
+            "google.com", "facebook.com", "youtube.com", "instagram.com", 
+            "twitter.com", "linkedin.com", "tiktok.com", "snapchat.com", 
+            "telegram.org", "whatsapp.com",
+
+            # E-commerce & Retail
+            "amazon.com", "alibaba.com", "ebay.com", "walmart.com", "etsy.com", 
+            "aliexpress.com", "target.com", "bestbuy.com", "overstock.com",
+
+            # Technology & Services
+            "microsoft.com", "apple.com", "netflix.com", "spotify.com", "dropbox.com", 
+            "cloudflare.com", "github.com", "wikipedia.org", "stackoverflow.com", 
+            "adobe.com", "salesforce.com",
+
+            # Entertainment & Media
+            "twitch.tv", "disney.com", "hulu.com", "primevideo.com", "imdb.com", 
+            "ign.com", "espn.com",
+
+            # News & Information
+            "bbc.com", "cnn.com", "nytimes.com", "reuters.com", "washingtonpost.com",
+
+            # Finance & Business
+            "paypal.com", "stripe.com", "indeed.com", "zoom.us",
+
+            # Travel & Hospitality
+            "booking.com", "airbnb.com", "expedia.com", "tripadvisor.com",
+
+            # Misc
+            "reddit.com", "quora.com", "medium.com"
         ]
         
         # Ping parameters
@@ -38,22 +64,6 @@ class ConcurrentUserPopulationEstimator:
         
         # Storage for connection metrics
         self.connection_metrics = {}
-        
-        # Predefined website user base estimates (rough global monthly active users)
-        self.website_user_bases = {
-            "google.com": 4_500_000_000,    # Google services
-            "facebook.com": 2_900_000_000,  # Facebook/Meta
-            "youtube.com": 2_500_000_000,   # YouTube
-            "whatsapp.com": 2_000_000_000,  # WhatsApp
-            "instagram.com": 1_500_000_000, # Instagram
-            "twitter.com": 400_000_000,     # Twitter/X
-            "amazon.com": 300_000_000,      # Amazon
-            "netflix.com": 250_000_000,     # Netflix
-            "microsoft.com": 1_200_000_000, # Microsoft services
-            "cloudflare.com": 25_000_000,   # Cloudflare (business users)
-            "github.com": 100_000_000,      # GitHub
-            "wikipedia.org": 1_700_000_000  # Wikipedia
-        }
     
     def calculate_jitter(self, ping_times):
         """
@@ -186,12 +196,20 @@ class ConcurrentUserPopulationEstimator:
     def calculate_user_population(self, connection_metrics):
         """
         Calculate concurrent user population estimate based on network metrics
+        and average enterprise CPU limitations
         
         :param connection_metrics: Network metrics for websites
         :return: Detailed user population estimation
         """
         if not connection_metrics:
-            return self.fallback_population_estimation()
+            return {"total_estimated_concurrent_users": 0, "website_populations": {}}
+        
+        # Average Enterprise CPU Limitations
+        # Based on typical enterprise server configurations
+        AVG_ENTERPRISE_CPU_CORES = 64       # Average high-end enterprise server
+        AVG_CPU_THREADS_PER_CORE = 2        # Typical hyperthreading
+        AVG_CPU_CLOCK_SPEED = 3.0           # GHz
+        AVG_SERVER_PROCESS_CAPACITY = 500   # Estimated concurrent processes per server
         
         # Calculate network stress indicators
         jitter_values = [metrics['jitter'] for metrics in connection_metrics.values()]
@@ -202,33 +220,42 @@ class ConcurrentUserPopulationEstimator:
         website_populations = {}
         
         for website, metrics in connection_metrics.items():
-            # Base population from predefined estimates
-            base_population = self.website_user_bases.get(website, 100_000_000)
-            
-            # Calculate population based on network metrics
-            # Lower jitter and ping suggest more active users
+            # Calculate population based on network metrics and CPU limitations
             jitter_factor = max(0, 1 - (metrics['jitter'] / 100))  # Normalize jitter
             ping_factor = max(0, 1 - (metrics['avg_ping'] / 1000))  # Normalize ping
             packet_loss_factor = 1 - (metrics['packet_loss'] / 100)
             
+            # CPU-based population estimation
+            cpu_capacity_factor = (
+                AVG_ENTERPRISE_CPU_CORES * 
+                AVG_CPU_THREADS_PER_CORE * 
+                AVG_CPU_CLOCK_SPEED
+            )
+            
             # Combine factors to estimate concurrent users
             concurrent_user_estimate = int(
-                base_population * 
+                AVG_SERVER_PROCESS_CAPACITY * 
                 jitter_factor * 
                 ping_factor * 
                 packet_loss_factor * 
-                0.01  # Base scaling factor
+                cpu_capacity_factor
             )
             
             website_populations[website] = {
-                "base_population": base_population,
                 "estimated_concurrent_users": concurrent_user_estimate,
-                "jitter": metrics['jitter'],
-                "avg_ping": metrics['avg_ping'],
-                "packet_loss": metrics['packet_loss'],
-                "jitter_factor": jitter_factor,
-                "ping_factor": ping_factor,
-                "packet_loss_factor": packet_loss_factor
+                "cpu_capacity_factors": {
+                    "cores": AVG_ENTERPRISE_CPU_CORES,
+                    "threads_per_core": AVG_CPU_THREADS_PER_CORE,
+                    "clock_speed_ghz": AVG_CPU_CLOCK_SPEED
+                },
+                "network_performance": {
+                    "jitter": metrics['jitter'],
+                    "avg_ping": metrics['avg_ping'],
+                    "packet_loss": metrics['packet_loss'],
+                    "jitter_factor": jitter_factor,
+                    "ping_factor": ping_factor,
+                    "packet_loss_factor": packet_loss_factor
+                }
             }
             
             total_estimated_population += concurrent_user_estimate
@@ -236,7 +263,7 @@ class ConcurrentUserPopulationEstimator:
         # Overall population estimation
         population_estimate = {
             "total_estimated_concurrent_users": total_estimated_population,
-            "estimation_method": "network_metrics",
+            "estimation_method": "cpu_network_metrics",
             "network_stress_indicators": {
                 "avg_jitter": statistics.mean(jitter_values),
                 "max_jitter": max(jitter_values),
