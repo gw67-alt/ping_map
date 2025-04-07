@@ -185,7 +185,7 @@ class ConcurrentUserPopulationEstimator:
     
     def calculate_user_population(self, connection_metrics):
         """
-        Calculate concurrent user population estimate
+        Calculate concurrent user population estimate based on network metrics
         
         :param connection_metrics: Network metrics for websites
         :return: Detailed user population estimation
@@ -205,17 +205,33 @@ class ConcurrentUserPopulationEstimator:
             # Base population from predefined estimates
             base_population = self.website_user_bases.get(website, 100_000_000)
             
-            # Simple estimation based on base population
-            estimated_concurrent_users = int(base_population * 0.001)
+            # Calculate population based on network metrics
+            # Lower jitter and ping suggest more active users
+            jitter_factor = max(0, 1 - (metrics['jitter'] / 100))  # Normalize jitter
+            ping_factor = max(0, 1 - (metrics['avg_ping'] / 1000))  # Normalize ping
+            packet_loss_factor = 1 - (metrics['packet_loss'] / 100)
+            
+            # Combine factors to estimate concurrent users
+            concurrent_user_estimate = int(
+                base_population * 
+                jitter_factor * 
+                ping_factor * 
+                packet_loss_factor * 
+                0.01  # Base scaling factor
+            )
             
             website_populations[website] = {
                 "base_population": base_population,
-                "estimated_concurrent_users": estimated_concurrent_users,
+                "estimated_concurrent_users": concurrent_user_estimate,
                 "jitter": metrics['jitter'],
-                "avg_ping": metrics['avg_ping']
+                "avg_ping": metrics['avg_ping'],
+                "packet_loss": metrics['packet_loss'],
+                "jitter_factor": jitter_factor,
+                "ping_factor": ping_factor,
+                "packet_loss_factor": packet_loss_factor
             }
             
-            total_estimated_population += estimated_concurrent_users
+            total_estimated_population += concurrent_user_estimate
         
         # Overall population estimation
         population_estimate = {
